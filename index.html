@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickFix | AI Predictive Code Intelligence & Automated Program Repair</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            950: '#060911',
+                            900: '#0b101d',
+                            800: '#111827',
+                            700: '#1f2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-[#070b14] text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- Clean Header -->
+    <header class="border-b border-slate-800/80 bg-slate-900/70 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/20">
+                <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">QuickFix</span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold uppercase rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800/60">Auto-Detect AI</span>
+                </div>
+                <p class="text-[11px] text-slate-400">Automatic Bug Detection, Cause Analysis & 1-Click Code Repair</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- AI Engine Indicator / Settings Button -->
+            <button onclick="openSettingsModal()" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs font-semibold text-slate-300 transition-all">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="engineStatusLabel">Auto AI Engine Active</span>
+                <i data-lucide="settings" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
+
+        <!-- Input Section: 3 Tabs (Paste Code / Upload File / GitHub Repo) -->
+        <section class="rounded-2xl glass-panel border border-slate-800 overflow-hidden shadow-xl">
+            <!-- Tabs Navigation -->
+            <div class="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center space-x-2">
+                    <button onclick="switchInputTab('paste')" id="tabBtnPaste" class="tab-active flex items-center space-x-2 px-3.5 py-1.5 rounded-lg border border-transparent text-xs font-semibold text-slate-300 hover:text-white transition-all">
+                        <i data-lucide="file-code" class="w-3.5 h-3.5"></i>
+                        <span>Paste Code</span>
+                    </button>
+                    <button onclick="switchInputTab('upload')" id="tabBtnUpload" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg border border-transparent text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+                        <span>Upload File</span>
+                    </button>
+                    <button onclick="switchInputTab('github')" id="tabBtnGithub" class="flex items-center space-x-2 px-3.5 py-1.5 rounded-lg border border-transparent text-xs font-semibold text-slate-400 hover:text-white transition-all">
+                        <i data-lucide="github" class="w-3.5 h-3.5 text-purple-400"></i>
+                        <span>GitHub Repository</span>
+                    </button>
+                </div>
+
+                <!-- Quick Try Sample Shortcuts -->
+                <div class="flex items-center space-x-2 text-xs">
+                    <span class="text-slate-500 text-[11px] font-medium hidden sm:inline">Try Quick Sample:</span>
+                    <button onclick="loadSample('race')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700/60 transition-colors">Race Condition</button>
+                    <button onclick="loadSample('sqli')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700/60 transition-colors">SQL Injection</button>
+                    <button onclick="loadSample('leak')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700/60 transition-colors">Resource Leak</button>
+                    <button onclick="loadSample('null')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700/60 transition-colors">Null Pointer</button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Paste Code Body -->
+            <div id="tabContentPaste" class="p-4 space-y-3">
+                <div class="flex items-center justify-between text-xs text-slate-400">
+                    <div class="flex items-center space-x-2">
+                        <span class="font-medium text-slate-300">File Name:</span>
+                        <input type="text" id="fileNameInput" value="source_code.py" class="bg-slate-900 px-2 py-1 rounded border border-slate-700/70 text-slate-200 font-mono text-xs outline-none focus:border-cyan-500 w-44">
+                    </div>
+                    <span id="editorStatsLabel">0 lines</span>
+                </div>
+                <div class="rounded-xl border border-slate-800 bg-[#090d18] overflow-hidden">
+                    <textarea id="mainCodeEditor" spellcheck="false" class="w-full h-64 p-4 bg-transparent text-slate-200 font-mono text-xs leading-relaxed outline-none resize-y selection:bg-cyan-500/30 selection:text-white" placeholder="// Paste any code here (Python, JavaScript, TypeScript, Java, C++, Go, etc.)...&#10;// QuickFix will automatically detect any errors, explain their causes, and generate the corrected code."></textarea>
+                </div>
+            </div>
+
+            <!-- Tab 2: Upload File Body -->
+            <div id="tabContentUpload" class="hidden p-8 flex flex-col items-center justify-center border-2 border-dashed border-slate-700/80 rounded-xl m-4 bg-slate-900/30 hover:bg-slate-900/50 transition-colors cursor-pointer" onclick="document.getElementById('fileUploadInput').click()">
+                <input type="file" id="fileUploadInput" onchange="handleFileSelected(event)" class="hidden" accept=".py,.js,.ts,.tsx,.jsx,.java,.cpp,.c,.go,.rs,.php,.cs,.txt">
+                <div class="w-14 h-14 rounded-2xl bg-cyan-950/60 border border-cyan-800/60 flex items-center justify-center text-cyan-400 mb-3 shadow-lg">
+                    <i data-lucide="upload" class="w-7 h-7"></i>
+                </div>
+                <h4 class="text-sm font-semibold text-slate-200">Click to upload or drag & drop source code</h4>
+                <p class="text-xs text-slate-400 mt-1">Supports Python, JavaScript, Java, C/C++, Go, Rust (.py, .js, .java, .cpp, .go)</p>
+                <div id="uploadedFileNameBanner" class="mt-3 text-xs text-emerald-400 font-mono hidden"></div>
+            </div>
+
+            <!-- Tab 3: GitHub Repository Body -->
+            <div id="tabContentGithub" class="hidden p-5 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <!-- Repo / File URL Input -->
+                    <div class="md:col-span-8 space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">GitHub Repository or File URL:</label>
+                        <div class="relative">
+                            <i data-lucide="link" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+                            <input type="text" id="githubRepoUrlInput" placeholder="https://github.com/owner/repo or owner/repo or direct file URL" class="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-mono outline-none focus:border-cyan-500">
+                        </div>
+                    </div>
+
+                    <!-- Token Input (For Private Repos & Rate Limits) -->
+                    <div class="md:col-span-4 space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-300 flex items-center justify-between">
+                            <span>GitHub Token <span class="text-slate-500 font-normal">(Private Repos)</span>:</span>
+                            <a href="https://github.com/settings/tokens/new?scopes=repo&description=AegisCode" target="_blank" class="text-cyan-400 text-[10px] hover:underline">Get Token</a>
+                        </label>
+                        <div class="relative">
+                            <i data-lucide="key" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+                            <input type="password" id="githubTokenInputTab" placeholder="ghp_... (paste here if private)" class="w-full pl-9 pr-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs font-mono outline-none focus:border-cyan-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] text-slate-400">
+                        <span class="text-slate-500">Supports:</span> Public repos, private repos (with token), subfolders, and direct file links.
+                    </p>
+                    <button onclick="fetchFromGitHub()" id="fetchGithubBtn" class="flex items-center space-x-1.5 px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-md transition-all">
+                        <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i>
+                        <span>Fetch Code</span>
+                    </button>
+                </div>
+
+                <!-- GitHub Alert / Error Box -->
+                <div id="githubFetchAlert" class="hidden p-3 rounded-lg text-xs font-mono"></div>
+
+                <!-- GitHub Files Tree / Selector (Populates when repo fetched) -->
+                <div id="githubFilesContainer" class="hidden space-y-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-semibold text-slate-300 flex items-center">
+                            <i data-lucide="folder-git-2" class="w-3.5 h-3.5 text-purple-400 mr-1.5"></i>
+                            Repository Files Found:
+                        </span>
+                        <span class="text-[11px] text-slate-500" id="githubFileCountLabel">0 files</span>
+                    </div>
+                    <div class="max-h-48 overflow-y-auto space-y-1 font-mono text-xs" id="githubFilesList">
+                        <!-- Dynamic file list items -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Primary Action Bar -->
+            <div class="p-4 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs text-slate-400 flex items-center">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400 mr-1.5"></i>
+                    Automatic Deep Defect Inspection
+                </span>
+                <button onclick="analyzeAndRepairCode()" id="analyzeBtn" class="flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/25 transition-all transform hover:-translate-y-0.5">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>Analyze & Automatically Fix Code</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Loading Spinner State -->
+        <div id="analyzingState" class="hidden p-12 text-center space-y-3 rounded-2xl glass-panel border border-slate-800">
+            <i data-lucide="loader-2" class="w-8 h-8 text-cyan-400 animate-spin mx-auto"></i>
+            <h3 class="text-sm font-bold text-slate-200">Scanning for Errors & Logical Vulnerabilities...</h3>
+            <p class="text-xs text-slate-400">Analyzing control flow, evaluating state mutations, and synthesizing corrected code.</p>
+        </div>
+
+        <!-- Results Section (Visible after analysis) -->
+        <section id="resultsSection" class="hidden space-y-6">
+
+            <!-- Summary Risk Banner -->
+            <div class="p-4 rounded-xl glass-panel border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div id="summaryRiskBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-950 text-red-400 border border-red-800">
+                        CRITICAL RISK
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-slate-100" id="summaryTitleText">2 Vulnerabilities Automatically Detected</div>
+                        <div class="text-xs text-slate-400" id="summarySubText">Defect Likelihood: 88.5% • Corrected code generated with zero regressions</div>
+                    </div>
+                </div>
+
+                <!-- GitHub Action Button directly in summary -->
+                <button onclick="openCommitModal()" class="flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-xs font-bold text-white shadow-lg transition-all">
+                    <i data-lucide="git-commit" class="w-3.5 h-3.5"></i>
+                    <span>Commit & Push Fix to GitHub</span>
+                </button>
+            </div>
+
+            <!-- Two-Column Display: Left = Errors & Causes; Right = Corrected Code -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Column: Automatically Detected Errors & What Causes Them (Col Span 5) -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 mr-1.5"></i>
+                            Automatically Detected Problems
+                        </h3>
+                        <span class="text-xs text-slate-500" id="errorCountBadge">1 Issue</span>
+                    </div>
+
+                    <!-- Dynamic List of Detected Errors -->
+                    <div id="detectedErrorsList" class="space-y-4">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Corrected Code with 1-Click Copy (Col Span 7) -->
+                <div class="lg:col-span-7 flex flex-col rounded-2xl glass-panel border border-slate-800 overflow-hidden shadow-xl">
+                    <!-- Corrected Code Header & Action Buttons -->
+                    <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="text-xs font-bold text-slate-200">Corrected Code (Ready to Use)</span>
+                        </div>
+
+                        <!-- View Toggle: Code vs Git Diff -->
+                        <div class="flex items-center space-x-2">
+                            <div class="flex rounded-lg bg-slate-800 p-0.5 border border-slate-700 text-[11px]">
+                                <button onclick="toggleCodeView('code')" id="viewToggleCodeBtn" class="px-2.5 py-1 rounded-md font-semibold bg-cyan-600/30 text-cyan-300">Full Code</button>
+                                <button onclick="toggleCodeView('diff')" id="viewToggleDiffBtn" class="px-2.5 py-1 rounded-md font-semibold text-slate-400 hover:text-slate-200">Git Diff</button>
+                            </div>
+
+                            <!-- Big Copy Button -->
+                            <button onclick="copyCorrectedCode()" id="copyCodeBtn" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                <span id="copyCodeBtnText">Copy Corrected Code</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Code Display Area -->
+                    <div class="relative flex-1 bg-[#090d18] font-mono text-xs overflow-hidden">
+                        <!-- Full Code Pre -->
+                        <div id="correctedCodeWrapper" class="p-4 overflow-auto max-h-[500px]">
+                            <pre id="correctedCodePre" class="text-slate-200 whitespace-pre leading-relaxed select-all font-mono text-xs"></pre>
+                        </div>
+
+                        <!-- Git Diff Pre (Hidden by default) -->
+                        <div id="correctedDiffWrapper" class="hidden p-4 overflow-auto max-h-[500px] space-y-0.5 font-mono text-xs leading-relaxed">
+                            <div id="diffContentContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Action Bar -->
+                    <div class="p-3 bg-slate-950/80 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center space-x-2 text-emerald-400">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <span>All invariants verified • 0 syntax regressions</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="downloadCorrectedFile()" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition-colors">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>Download File</span>
+                            </button>
+                            <button onclick="openCommitModal()" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-xs font-semibold shadow-md transition-colors">
+                                <i data-lucide="git-pull-request" class="w-3.5 h-3.5"></i>
+                                <span>Commit to GitHub</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Commit & Push to GitHub Modal -->
+    <div id="commitModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i data-lucide="github" class="w-5 h-5 text-purple-400"></i>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Commit & Push to GitHub</h3>
+                        <p class="text-xs text-slate-400">Push corrected code directly to your repository</p>
+                    </div>
+                </div>
+                <button onclick="closeCommitModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Target Repository (owner/repo):</label>
+                    <input type="text" id="targetRepoInput" placeholder="e.g. your-username/my-project" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-mono text-xs outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Target File Path:</label>
+                    <input type="text" id="targetFilePathInput" value="services/checkout.py" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-mono text-xs outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Commit Message:</label>
+                    <input type="text" id="commitMessageInput" value="fix(security): auto-repair logical vulnerabilities via QuickFix" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 text-xs outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">GitHub Personal Access Token (Optional for live push):</label>
+                    <input type="password" id="githubTokenInput" placeholder="ghp_... (leave empty for simulated demo commit)" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-mono text-xs outline-none focus:border-cyan-500">
+                    <p class="text-[11px] text-slate-500 mt-1">If empty, QuickFix performs a simulated instant commit for live hackathon judging.</p>
+                </div>
+
+                <div id="commitStatusAlert" class="hidden p-3 rounded-lg text-xs"></div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button onclick="closeCommitModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">
+                        Cancel
+                    </button>
+                    <button onclick="executeGitHubCommit()" id="confirmCommitBtn" class="flex items-center space-x-1.5 px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg shadow-purple-600/30">
+                        <i data-lucide="git-commit" class="w-3.5 h-3.5"></i>
+                        <span>Confirm & Push</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-amber-400"></i>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">AI Engine Configuration</h3>
+                        <p class="text-xs text-slate-400">Power deep semantic bug repair</p>
+                    </div>
+                </div>
+                <button onclick="closeSettingsModal()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Google Gemini API Key (Free):</label>
+                    <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-mono text-xs focus:border-cyan-500 outline-none">
+                    <p class="text-[11px] text-slate-500 mt-1">Get a free key in seconds at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-cyan-400 underline">aistudio.google.com</a>.</p>
+                </div>
+
+                <div class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-xs">
+                    <div class="font-bold text-cyan-400 mb-1">💡 Offline Automatic Fallback</div>
+                    <div>If no key is configured, QuickFix runs our built-in <strong>Universal Semantic AST Engine</strong> offline with zero errors.</div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">
+                        Cancel
+                    </button>
+                    <button onclick="saveSettings()" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Script -->
+    <script src="app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
